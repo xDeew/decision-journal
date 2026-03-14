@@ -93,6 +93,12 @@ function App() {
     setFormData(initialFormData)
   }
 
+  const handleDeleteDecision = (decisionId: string) => {
+    setDecisions((currentDecisions) =>
+      currentDecisions.filter((decision) => decision.id !== decisionId)
+    )
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -212,10 +218,20 @@ function App() {
               {decisions.map((decision) => (
                 <article key={decision.id} className="decision-card">
                   <div className="decision-card-top">
-                    <span className={`confidence-badge ${decision.confidence}`}>
-                      {decision.confidence}
-                    </span>
-                    <span className="decision-date">{decision.createdAt}</span>
+                    <div className="decision-meta">
+                      <span className={`confidence-badge ${decision.confidence}`}>
+                        {decision.confidence}
+                      </span>
+                      <span className="decision-date">{decision.createdAt}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="delete-button"
+                      onClick={() => handleDeleteDecision(decision.id)}
+                    >
+                      Delete
+                    </button>
                   </div>
 
                   <h3>{decision.title}</h3>
