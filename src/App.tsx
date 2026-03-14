@@ -35,6 +35,7 @@ const DECISIONS_STORAGE_KEY = 'decision-journal-entries'
 function App() {
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [decisions, setDecisions] = useState<Decision[]>([])
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
@@ -76,8 +77,11 @@ function App() {
       !formData.expectedOutcome.trim() ||
       !formData.confidence
     ) {
+      setErrorMessage('Please complete all fields before saving the decision.')
       return
     }
+
+    setErrorMessage('')
 
     const newDecision: Decision = {
       id: crypto.randomUUID(),
@@ -91,6 +95,7 @@ function App() {
 
     setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
     setFormData(initialFormData)
+    setErrorMessage('')
   }
 
   const handleDeleteDecision = (decisionId: string) => {
@@ -191,9 +196,12 @@ function App() {
               </select>
             </div>
 
+            {errorMessage && <p className="form-error">{errorMessage}</p>}
+
             <button type="submit" className="primary-button">
               Save decision
             </button>
+
           </form>
         </div>
 
