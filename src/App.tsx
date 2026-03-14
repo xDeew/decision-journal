@@ -44,6 +44,8 @@ function App() {
   const [reviewText, setReviewText] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'reviewed'>('all')
   const [reflectionText, setReflectionText] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
 
   useEffect(() => {
     const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
@@ -152,18 +154,33 @@ function App() {
     setReviewText('')
     setReflectionText('')
   }
-
   const filteredDecisions = decisions.filter((decision) => {
-    if (statusFilter === 'all') {
-      return true
-    }
+    const matchesStatus =
+      statusFilter === 'all' ? true : decision.status === statusFilter
 
-    return decision.status === statusFilter
+    const matchesCategory =
+      selectedCategory === 'all' ? true : decision.category === selectedCategory
+
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    const matchesSearch =
+      normalizedSearch === ''
+        ? true
+        : decision.title.toLowerCase().includes(normalizedSearch) ||
+        decision.category.toLowerCase().includes(normalizedSearch) ||
+        decision.context.toLowerCase().includes(normalizedSearch)
+
+    return matchesStatus && matchesCategory && matchesSearch
   })
 
   const totalDecisions = decisions.length
   const openDecisions = decisions.filter((decision) => decision.status === 'open').length
   const reviewedDecisions = decisions.filter((decision) => decision.status === 'reviewed').length
+
+
+  const availableCategories = Array.from(
+    new Set(decisions.map((decision) => decision.category))
+  ).sort()
 
   return (
     <main className="app-shell">
@@ -315,19 +332,42 @@ function App() {
             </button>
           </div>
 
+          <div className="toolbar">
+            <div className="toolbar-search">
+              <label htmlFor="search-decisions">Search</label>
+              <input
+                id="search-decisions"
+                type="text"
+                placeholder="Search by title, category or context..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </div>
+
+            <div className="toolbar-category">
+              <label htmlFor="category-filter">Category</label>
+              <select
+                id="category-filter"
+                value={selectedCategory}
+                onChange={(event) => setSelectedCategory(event.target.value)}
+              >
+                <option value="all">All categories</option>
+                {availableCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {filteredDecisions.length === 0 ? (
             <div className="empty-state">
               <div>
-                <h3>
-                  {statusFilter === 'all'
-                    ? 'No decisions yet'
-                    : `No ${statusFilter} decisions`}
-                </h3>
-
+                <h3>No matching decisions</h3>
                 <p>
-                  {statusFilter === 'all'
-                    ? 'Your saved entries will appear here. Start with one real decision and build the journal from there.'
-                    : `There are currently no decisions in the "${statusFilter}" state.`}
+                  Try changing the status, category, or search filters, or add a new
+                  decision to get started.
                 </p>
               </div>
             </div>
@@ -429,7 +469,7 @@ function App() {
                       <p>{decision.actualOutcome}</p>
                     </div>
                   )}
-                  
+
                   {decision.reflection && (
                     <div className="decision-section">
                       <h4>Reflection</h4>
