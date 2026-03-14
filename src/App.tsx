@@ -12,6 +12,8 @@ type Decision = {
   expectedOutcome: string
   confidence: ConfidenceLevel
   createdAt: string
+  status: 'open' | 'reviewed'
+
 }
 
 type FormData = {
@@ -45,8 +47,14 @@ function App() {
     }
 
     try {
-      const parsedDecisions: Decision[] = JSON.parse(storedDecisions)
-      setDecisions(parsedDecisions)
+      const parsedDecisions = JSON.parse(storedDecisions)
+
+      const normalizedDecisions: Decision[] = parsedDecisions.map((decision: Decision) => ({
+        ...decision,
+        status: decision.status ?? 'open',
+      }))
+
+      setDecisions(normalizedDecisions)
     } catch (error) {
       console.error('Failed to parse decisions from localStorage:', error)
     }
@@ -91,6 +99,7 @@ function App() {
       expectedOutcome: formData.expectedOutcome.trim(),
       confidence: formData.confidence,
       createdAt: new Date().toLocaleDateString(),
+      status: 'open',
     }
 
     setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
@@ -101,6 +110,16 @@ function App() {
   const handleDeleteDecision = (decisionId: string) => {
     setDecisions((currentDecisions) =>
       currentDecisions.filter((decision) => decision.id !== decisionId)
+    )
+  }
+
+  const handleMarkAsReviewed = (decisionId: string) => {
+    setDecisions((currentDecisions) =>
+      currentDecisions.map((decision) =>
+        decision.id === decisionId
+          ? { ...decision, status: 'reviewed' }
+          : decision
+      )
     )
   }
 
@@ -230,6 +249,9 @@ function App() {
                       <span className={`confidence-badge ${decision.confidence}`}>
                         {decision.confidence}
                       </span>
+                      <span className={`status-badge ${decision.status}`}>
+                        {decision.status}
+                      </span>
                       <span className="decision-date">{decision.createdAt}</span>
                     </div>
 
@@ -244,6 +266,19 @@ function App() {
 
                   <h3>{decision.title}</h3>
                   <p className="decision-category">{decision.category}</p>
+                  <div className="decision-actions">
+                    {decision.status === 'open' ? (
+                      <button
+                        type="button"
+                        className="review-button"
+                        onClick={() => handleMarkAsReviewed(decision.id)}
+                      >
+                        Mark as reviewed
+                      </button>
+                    ) : (
+                      <span className="reviewed-label">Reviewed</span>
+                    )}
+                  </div>
 
                   <div className="decision-section">
                     <h4>Context</h4>
