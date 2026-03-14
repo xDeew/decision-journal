@@ -14,6 +14,7 @@ type Decision = {
   confidence: ConfidenceLevel
   createdAt: string
   status: 'open' | 'reviewed'
+  reflection: string
 
 }
 
@@ -42,6 +43,7 @@ function App() {
   const [reviewingDecisionId, setReviewingDecisionId] = useState<string | null>(null)
   const [reviewText, setReviewText] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'reviewed'>('all')
+  const [reflectionText, setReflectionText] = useState('')
 
   useEffect(() => {
     const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
@@ -56,6 +58,7 @@ function App() {
       const normalizedDecisions: Decision[] = parsedDecisions.map((decision: Partial<Decision>) => ({
         ...decision,
         actualOutcome: decision.actualOutcome ?? '',
+        reflection: decision.reflection ?? '',
         status: decision.status ?? 'open',
       })) as Decision[]
 
@@ -106,6 +109,7 @@ function App() {
       confidence: formData.confidence,
       createdAt: new Date().toLocaleDateString(),
       status: 'open',
+      reflection: '',
     }
 
     setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
@@ -123,6 +127,7 @@ function App() {
 
     setReviewingDecisionId(decisionId)
     setReviewText(decisionToReview?.actualOutcome ?? '')
+    setReflectionText(decisionToReview?.reflection ?? '')
   }
 
   const handleSaveReview = (decisionId: string) => {
@@ -136,6 +141,7 @@ function App() {
           ? {
             ...decision,
             actualOutcome: reviewText.trim(),
+            reflection: reflectionText.trim(),
             status: 'reviewed',
           }
           : decision
@@ -144,6 +150,7 @@ function App() {
 
     setReviewingDecisionId(null)
     setReviewText('')
+    setReflectionText('')
   }
 
   const filteredDecisions = decisions.filter((decision) => {
@@ -385,6 +392,14 @@ function App() {
                         placeholder="What actually happened after making this decision?"
                       />
 
+                      <label htmlFor={`reflection-${decision.id}`}>Reflection</label>
+                      <textarea
+                        id={`reflection-${decision.id}`}
+                        rows={4}
+                        value={reflectionText}
+                        onChange={(event) => setReflectionText(event.target.value)}
+                        placeholder="What did you learn from this decision? Would you do anything differently next time?"
+                      />
                       <div className="review-box-actions">
                         <button
                           type="button"
@@ -412,6 +427,13 @@ function App() {
                     <div className="decision-section">
                       <h4>Actual outcome</h4>
                       <p>{decision.actualOutcome}</p>
+                    </div>
+                  )}
+                  
+                  {decision.reflection && (
+                    <div className="decision-section">
+                      <h4>Reflection</h4>
+                      <p>{decision.reflection}</p>
                     </div>
                   )}
                 </article>
