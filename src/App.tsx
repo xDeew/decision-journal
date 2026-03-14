@@ -10,6 +10,13 @@ import {
 import { loadDecisions, saveDecisions } from './utils/storage'
 import DecisionCard from './components/DecisionCard'
 import DecisionForm from './components/DecisionForm'
+import DecisionToolbar from './components/DecisionToolbar'
+import DecisionStats from './components/DecisionStats'
+import {
+  getAvailableCategories,
+  getDecisionStats,
+  getFilteredDecisions,
+} from './utils/decisionHelpers'
 
 function App() {
   const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
@@ -151,34 +158,17 @@ function App() {
     setErrorMessage('')
   }
 
-  const filteredDecisions = decisions.filter((decision) => {
-    const matchesStatus =
-      statusFilter === 'all' ? true : decision.status === statusFilter
-
-    const matchesCategory =
-      selectedCategory === 'all' ? true : decision.category === selectedCategory
-
-    const normalizedSearch = searchTerm.trim().toLowerCase()
-
-    const matchesSearch =
-      normalizedSearch === ''
-        ? true
-        : decision.title.toLowerCase().includes(normalizedSearch) ||
-        decision.category.toLowerCase().includes(normalizedSearch) ||
-        decision.context.toLowerCase().includes(normalizedSearch)
-
-    return matchesStatus && matchesCategory && matchesSearch
+  const filteredDecisions = getFilteredDecisions({
+    decisions,
+    statusFilter,
+    selectedCategory,
+    searchTerm,
   })
 
-  const totalDecisions = decisions.length
-  const openDecisions = decisions.filter((decision) => decision.status === 'open').length
-  const reviewedDecisions = decisions.filter((decision) => decision.status === 'reviewed').length
+  const { totalDecisions, openDecisions, reviewedDecisions } =
+    getDecisionStats(decisions)
 
-
-  const availableCategories = Array.from(
-    new Set(decisions.map((decision) => decision.category))
-  ).sort()
-
+  const availableCategories = getAvailableCategories(decisions)
 
   const hasDecisions = decisions.length > 0
 
@@ -200,23 +190,11 @@ function App() {
           intentional and learning more concrete.
         </p>
       </section>
-
-      <section className="stats-grid">
-        <article className="stat-card">
-          <p className="stat-label">Total</p>
-          <strong className="stat-value">{totalDecisions}</strong>
-        </article>
-
-        <article className="stat-card">
-          <p className="stat-label">Open</p>
-          <strong className="stat-value">{openDecisions}</strong>
-        </article>
-
-        <article className="stat-card">
-          <p className="stat-label">Reviewed</p>
-          <strong className="stat-value">{reviewedDecisions}</strong>
-        </article>
-      </section>
+      <DecisionStats
+        totalDecisions={totalDecisions}
+        openDecisions={openDecisions}
+        reviewedDecisions={reviewedDecisions}
+      />
 
       <section className="workspace">
         <DecisionForm
