@@ -398,3 +398,34 @@
   background: transparent;
   color: #d9c8ac;
 }
+
+.filter-tabs {
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  border: 1px solid rgba(214, 202, 179, 0.12);
+  background: transparent;
+  color: #cbbda3;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.filter-tab:hover {
+  background: rgba(216, 196, 160, 0.06);
+  border-color: rgba(216, 196, 160, 0.22);
+}
+
+.filter-tab.active {
+  background: #d8c4a0;
+  color: #16130d;
+  border-color: #d8c4a0;
+}

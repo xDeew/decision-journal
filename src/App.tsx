@@ -41,6 +41,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('')
   const [reviewingDecisionId, setReviewingDecisionId] = useState<string | null>(null)
   const [reviewText, setReviewText] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'reviewed'>('all')
 
   useEffect(() => {
     const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
@@ -144,6 +145,14 @@ function App() {
     setReviewingDecisionId(null)
     setReviewText('')
   }
+
+  const filteredDecisions = decisions.filter((decision) => {
+    if (statusFilter === 'all') {
+      return true
+    }
+
+    return decision.status === statusFilter
+  })
 
   return (
     <main className="app-shell">
@@ -252,19 +261,51 @@ function App() {
             <h2>Decision log</h2>
           </div>
 
-          {decisions.length === 0 ? (
+          <div className="filter-tabs">
+            <button
+              type="button"
+              className={statusFilter === 'all' ? 'filter-tab active' : 'filter-tab'}
+              onClick={() => setStatusFilter('all')}
+            >
+              All
+            </button>
+
+            <button
+              type="button"
+              className={statusFilter === 'open' ? 'filter-tab active' : 'filter-tab'}
+              onClick={() => setStatusFilter('open')}
+            >
+              Open
+            </button>
+
+            <button
+              type="button"
+              className={statusFilter === 'reviewed' ? 'filter-tab active' : 'filter-tab'}
+              onClick={() => setStatusFilter('reviewed')}
+            >
+              Reviewed
+            </button>
+          </div>
+
+          {filteredDecisions.length === 0 ? (
             <div className="empty-state">
               <div>
-                <h3>No decisions yet</h3>
+                <h3>
+                  {statusFilter === 'all'
+                    ? 'No decisions yet'
+                    : `No ${statusFilter} decisions`}
+                </h3>
+
                 <p>
-                  Your saved entries will appear here. Start with one real
-                  decision and build the journal from there.
+                  {statusFilter === 'all'
+                    ? 'Your saved entries will appear here. Start with one real decision and build the journal from there.'
+                    : `There are currently no decisions in the "${statusFilter}" state.`}
                 </p>
               </div>
             </div>
           ) : (
             <div className="decision-list">
-              {decisions.map((decision) => (
+              {filteredDecisions.map((decision) => (
                 <article key={decision.id} className="decision-card">
                   <div className="decision-card-top">
                     <div className="decision-meta">
