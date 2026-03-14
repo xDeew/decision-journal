@@ -154,6 +154,10 @@ function App() {
     return decision.status === statusFilter
   })
 
+  const totalDecisions = decisions.length
+  const openDecisions = decisions.filter((decision) => decision.status === 'open').length
+  const reviewedDecisions = decisions.filter((decision) => decision.status === 'reviewed').length
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -171,6 +175,23 @@ function App() {
           behind them, and the outcome later on. Built to make reflection more
           intentional and learning more concrete.
         </p>
+      </section>
+
+      <section className="stats-grid">
+        <article className="stat-card">
+          <p className="stat-label">Total</p>
+          <strong className="stat-value">{totalDecisions}</strong>
+        </article>
+
+        <article className="stat-card">
+          <p className="stat-label">Open</p>
+          <strong className="stat-value">{openDecisions}</strong>
+        </article>
+
+        <article className="stat-card">
+          <p className="stat-label">Reviewed</p>
+          <strong className="stat-value">{reviewedDecisions}</strong>
+        </article>
       </section>
 
       <section className="workspace">
