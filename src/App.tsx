@@ -1,4 +1,5 @@
-import { ChangeEvent, FormEvent, useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import './App.css'
 
 type ConfidenceLevel = 'low' | 'medium' | 'high'
@@ -29,9 +30,30 @@ const initialFormData: FormData = {
   confidence: '',
 }
 
+const DECISIONS_STORAGE_KEY = 'decision-journal-entries'
+
 function App() {
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [decisions, setDecisions] = useState<Decision[]>([])
+
+  useEffect(() => {
+    const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
+
+    if (!storedDecisions) {
+      return
+    }
+
+    try {
+      const parsedDecisions: Decision[] = JSON.parse(storedDecisions)
+      setDecisions(parsedDecisions)
+    } catch (error) {
+      console.error('Failed to parse decisions from localStorage:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(DECISIONS_STORAGE_KEY, JSON.stringify(decisions))
+  }, [decisions])
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
