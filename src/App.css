@@ -497,6 +497,28 @@
   background: rgba(255, 255, 255, 0.025);
   color: #f3f1ea;
   font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, #cfc3aa 50%),
+    linear-gradient(135deg, #cfc3aa 50%, transparent 50%),
+    rgba(255, 255, 255, 0.025);
+  background-position:
+    calc(100% - 22px) calc(50% - 3px),
+    calc(100% - 16px) calc(50% - 3px),
+    0 0;
+  background-size:
+    6px 6px,
+    6px 6px,
+    100% 100%;
+  background-repeat: no-repeat;
+  padding-right: 3rem;
+}
+
+.toolbar select option {
+  background-color: #1a1712;
+  color: #f3f1ea;
 }
 
 .toolbar input::placeholder {
@@ -514,4 +536,34 @@
   .toolbar {
     grid-template-columns: 1fr;
   }
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.edit-button,
+.secondary-button {
+  border: 1px solid rgba(214, 202, 179, 0.14);
+  background: transparent;
+  color: #d9c8ac;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.edit-button:hover,
+.secondary-button:hover {
+  background: rgba(216, 196, 160, 0.08);
+  border-color: rgba(216, 196, 160, 0.28);
+}
+
+.secondary-button {
+  margin-top: 0.7rem;
 }

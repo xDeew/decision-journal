@@ -46,6 +46,7 @@ function App() {
   const [reflectionText, setReflectionText] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
 
   useEffect(() => {
     const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
@@ -101,20 +102,40 @@ function App() {
 
     setErrorMessage('')
 
-    const newDecision: Decision = {
-      id: crypto.randomUUID(),
-      title: formData.title.trim(),
-      category: formData.category.trim(),
-      context: formData.context.trim(),
-      actualOutcome: '',
-      expectedOutcome: formData.expectedOutcome.trim(),
-      confidence: formData.confidence,
-      createdAt: new Date().toLocaleDateString(),
-      status: 'open',
-      reflection: '',
+    if (editingDecisionId) {
+      setDecisions((currentDecisions) =>
+        currentDecisions.map((decision) =>
+          decision.id === editingDecisionId
+            ? {
+              ...decision,
+              title: formData.title.trim(),
+              category: formData.category.trim(),
+              context: formData.context.trim(),
+              expectedOutcome: formData.expectedOutcome.trim(),
+              confidence: formData.confidence,
+            }
+            : decision
+        )
+      )
+
+      setEditingDecisionId(null)
+    } else {
+      const newDecision: Decision = {
+        id: crypto.randomUUID(),
+        title: formData.title.trim(),
+        category: formData.category.trim(),
+        context: formData.context.trim(),
+        actualOutcome: '',
+        expectedOutcome: formData.expectedOutcome.trim(),
+        confidence: formData.confidence,
+        createdAt: new Date().toLocaleDateString(),
+        status: 'open',
+        reflection: '',
+      }
+
+      setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
     }
 
-    setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
     setFormData(initialFormData)
     setErrorMessage('')
   }
@@ -154,6 +175,26 @@ function App() {
     setReviewText('')
     setReflectionText('')
   }
+
+  const handleEditDecision = (decisionId: string) => {
+    const decisionToEdit = decisions.find((decision) => decision.id === decisionId)
+
+    if (!decisionToEdit) {
+      return
+    }
+
+    setFormData({
+      title: decisionToEdit.title,
+      category: decisionToEdit.category,
+      context: decisionToEdit.context,
+      expectedOutcome: decisionToEdit.expectedOutcome,
+      confidence: decisionToEdit.confidence,
+    })
+
+    setEditingDecisionId(decisionId)
+    setErrorMessage('')
+  }
+
   const filteredDecisions = decisions.filter((decision) => {
     const matchesStatus =
       statusFilter === 'all' ? true : decision.status === statusFilter
@@ -181,6 +222,9 @@ function App() {
   const availableCategories = Array.from(
     new Set(decisions.map((decision) => decision.category))
   ).sort()
+
+
+  const hasDecisions = decisions.length > 0
 
   return (
     <main className="app-shell">
@@ -221,8 +265,10 @@ function App() {
       <section className="workspace">
         <div className="panel form-panel">
           <div className="panel-heading">
-            <p className="section-label">New decision</p>
-            <h2>Add entry</h2>
+            <p className="section-label">
+              {editingDecisionId ? 'Editing decision' : 'New decision'}
+            </p>
+            <h2>{editingDecisionId ? 'Edit entry' : 'Add entry'}</h2>
           </div>
 
           <form className="decision-form" onSubmit={handleSubmit}>
@@ -294,8 +340,22 @@ function App() {
             {errorMessage && <p className="form-error">{errorMessage}</p>}
 
             <button type="submit" className="primary-button">
-              Save decision
+              {editingDecisionId ? 'Update decision' : 'Save decision'}
             </button>
+
+            {editingDecisionId && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  setEditingDecisionId(null)
+                  setFormData(initialFormData)
+                  setErrorMessage('')
+                }}
+              >
+                Cancel editing
+              </button>
+            )}
 
           </form>
         </div>
@@ -364,10 +424,11 @@ function App() {
           {filteredDecisions.length === 0 ? (
             <div className="empty-state">
               <div>
-                <h3>No matching decisions</h3>
+                <h3>{hasDecisions ? 'No matching decisions' : 'No decisions yet'}</h3>
                 <p>
-                  Try changing the status, category, or search filters, or add a new
-                  decision to get started.
+                  {hasDecisions
+                    ? 'Try changing the status, category, or search filters.'
+                    : 'Your saved entries will appear here. Start with one real decision and build the journal from there.'}
                 </p>
               </div>
             </div>
@@ -386,13 +447,23 @@ function App() {
                       <span className="decision-date">{decision.createdAt}</span>
                     </div>
 
-                    <button
-                      type="button"
-                      className="delete-button"
-                      onClick={() => handleDeleteDecision(decision.id)}
-                    >
-                      Delete
-                    </button>
+                    <div className="card-actions">
+                      <button
+                        type="button"
+                        className="edit-button"
+                        onClick={() => handleEditDecision(decision.id)}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="delete-button"
+                        onClick={() => handleDeleteDecision(decision.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   <h3>{decision.title}</h3>
@@ -455,6 +526,7 @@ function App() {
                           onClick={() => {
                             setReviewingDecisionId(null)
                             setReviewText('')
+                            setReflectionText('')
                           }}
                         >
                           Cancel
