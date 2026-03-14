@@ -9,6 +9,7 @@ import {
 } from './types/decision'
 import { loadDecisions, saveDecisions } from './utils/storage'
 import DecisionCard from './components/DecisionCard'
+import DecisionForm from './components/DecisionForm'
 
 function App() {
   const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
@@ -218,102 +219,18 @@ function App() {
       </section>
 
       <section className="workspace">
-        <div className="panel form-panel">
-          <div className="panel-heading">
-            <p className="section-label">
-              {editingDecisionId ? 'Editing decision' : 'New decision'}
-            </p>
-            <h2>{editingDecisionId ? 'Edit entry' : 'Add entry'}</h2>
-          </div>
-
-          <form className="decision-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="title">Decision title</label>
-              <input
-                id="title"
-                name="title"
-                type="text"
-                placeholder="Should I switch to a new job?"
-                value={formData.title}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="category">Category</label>
-              <input
-                id="category"
-                name="category"
-                type="text"
-                placeholder="Career, finance, health..."
-                value={formData.category}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="context">Context</label>
-              <textarea
-                id="context"
-                name="context"
-                rows={4}
-                placeholder="What is happening, and why does this matter now?"
-                value={formData.context}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="expectedOutcome">Expected outcome</label>
-              <textarea
-                id="expectedOutcome"
-                name="expectedOutcome"
-                rows={4}
-                placeholder="What do you expect to happen if you choose this path?"
-                value={formData.expectedOutcome}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="confidence">Confidence level</label>
-              <select
-                id="confidence"
-                name="confidence"
-                value={formData.confidence}
-                onChange={handleChange}
-              >
-                <option value="" disabled hidden>
-                  Select confidence
-                </option>
-                <option value="low">Low confidence</option>
-                <option value="medium">Medium confidence</option>
-                <option value="high">High confidence</option>
-              </select>
-            </div>
-
-            {errorMessage && <p className="form-error">{errorMessage}</p>}
-
-            <button type="submit" className="primary-button">
-              {editingDecisionId ? 'Update decision' : 'Save decision'}
-            </button>
-
-            {editingDecisionId && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => {
-                  setEditingDecisionId(null)
-                  setFormData(initialFormData)
-                  setErrorMessage('')
-                }}
-              >
-                Cancel editing
-              </button>
-            )}
-
-          </form>
-        </div>
+        <DecisionForm
+          formData={formData}
+          errorMessage={errorMessage}
+          editingDecisionId={editingDecisionId}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+          onCancelEditing={() => {
+            setEditingDecisionId(null)
+            setFormData(initialFormData)
+            setErrorMessage('')
+          }}
+        />
 
         <div className="panel list-panel">
           <div className="panel-heading">
