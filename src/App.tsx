@@ -9,6 +9,7 @@ type Decision = {
   title: string
   category: string
   context: string
+  actualOutcome: string
   expectedOutcome: string
   confidence: ConfidenceLevel
   createdAt: string
@@ -16,7 +17,7 @@ type Decision = {
 
 }
 
-type FormData = {
+type DecisionFormData = {
   title: string
   category: string
   context: string
@@ -24,7 +25,7 @@ type FormData = {
   confidence: '' | ConfidenceLevel
 }
 
-const initialFormData: FormData = {
+const initialFormData: DecisionFormData = {
   title: '',
   category: '',
   context: '',
@@ -35,9 +36,11 @@ const initialFormData: FormData = {
 const DECISIONS_STORAGE_KEY = 'decision-journal-entries'
 
 function App() {
-  const [formData, setFormData] = useState<FormData>(initialFormData)
+  const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [errorMessage, setErrorMessage] = useState('')
+  const [reviewingDecisionId, setReviewingDecisionId] = useState<string | null>(null)
+  const [reviewText, setReviewText] = useState('')
 
   useEffect(() => {
     const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
@@ -49,10 +52,11 @@ function App() {
     try {
       const parsedDecisions = JSON.parse(storedDecisions)
 
-      const normalizedDecisions: Decision[] = parsedDecisions.map((decision: Decision) => ({
+      const normalizedDecisions: Decision[] = parsedDecisions.map((decision: Partial<Decision>) => ({
         ...decision,
+        actualOutcome: decision.actualOutcome ?? '',
         status: decision.status ?? 'open',
-      }))
+      })) as Decision[]
 
       setDecisions(normalizedDecisions)
     } catch (error) {
@@ -96,6 +100,7 @@ function App() {
       title: formData.title.trim(),
       category: formData.category.trim(),
       context: formData.context.trim(),
+      actualOutcome: '',
       expectedOutcome: formData.expectedOutcome.trim(),
       confidence: formData.confidence,
       createdAt: new Date().toLocaleDateString(),
@@ -112,15 +117,32 @@ function App() {
       currentDecisions.filter((decision) => decision.id !== decisionId)
     )
   }
+  const handleStartReview = (decisionId: string) => {
+    const decisionToReview = decisions.find((decision) => decision.id === decisionId)
 
-  const handleMarkAsReviewed = (decisionId: string) => {
+    setReviewingDecisionId(decisionId)
+    setReviewText(decisionToReview?.actualOutcome ?? '')
+  }
+
+  const handleSaveReview = (decisionId: string) => {
+    if (!reviewText.trim()) {
+      return
+    }
+
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) =>
         decision.id === decisionId
-          ? { ...decision, status: 'reviewed' }
+          ? {
+            ...decision,
+            actualOutcome: reviewText.trim(),
+            status: 'reviewed',
+          }
           : decision
       )
     )
+
+    setReviewingDecisionId(null)
+    setReviewText('')
   }
 
   return (
@@ -271,9 +293,9 @@ function App() {
                       <button
                         type="button"
                         className="review-button"
-                        onClick={() => handleMarkAsReviewed(decision.id)}
+                        onClick={() => handleStartReview(decision.id)}
                       >
-                        Mark as reviewed
+                        Add review
                       </button>
                     ) : (
                       <span className="reviewed-label">Reviewed</span>
@@ -289,6 +311,47 @@ function App() {
                     <h4>Expected outcome</h4>
                     <p>{decision.expectedOutcome}</p>
                   </div>
+
+                  {reviewingDecisionId === decision.id && (
+                    <div className="review-box">
+                      <label htmlFor={`review-${decision.id}`}>Actual outcome</label>
+                      <textarea
+                        id={`review-${decision.id}`}
+                        rows={4}
+                        value={reviewText}
+                        onChange={(event) => setReviewText(event.target.value)}
+                        placeholder="What actually happened after making this decision?"
+                      />
+
+                      <div className="review-box-actions">
+                        <button
+                          type="button"
+                          className="save-review-button"
+                          onClick={() => handleSaveReview(decision.id)}
+                        >
+                          Save review
+                        </button>
+
+                        <button
+                          type="button"
+                          className="cancel-review-button"
+                          onClick={() => {
+                            setReviewingDecisionId(null)
+                            setReviewText('')
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {decision.actualOutcome && (
+                    <div className="decision-section">
+                      <h4>Actual outcome</h4>
+                      <p>{decision.actualOutcome}</p>
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
