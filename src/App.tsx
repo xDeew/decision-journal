@@ -101,7 +101,7 @@ function App() {
     }
 
     setErrorMessage('')
-
+    const confidence: ConfidenceLevel = formData.confidence
     if (editingDecisionId) {
       setDecisions((currentDecisions) =>
         currentDecisions.map((decision) =>
@@ -112,7 +112,7 @@ function App() {
               category: formData.category.trim(),
               context: formData.context.trim(),
               expectedOutcome: formData.expectedOutcome.trim(),
-              confidence: formData.confidence,
+              confidence,
             }
             : decision
         )
@@ -321,14 +321,14 @@ function App() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confidence">Confidence</label>
+              <label htmlFor="confidence">Confidence level</label>
               <select
                 id="confidence"
                 name="confidence"
                 value={formData.confidence}
                 onChange={handleChange}
               >
-                <option value="" disabled>
+                <option value="" disabled hidden>
                   Select confidence
                 </option>
                 <option value="low">Low confidence</option>

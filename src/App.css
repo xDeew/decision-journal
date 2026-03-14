@@ -130,12 +130,19 @@
 }
 
 .form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.form-group textarea:focus {
   outline: none;
   border-color: rgba(210, 188, 145, 0.5);
   background: rgba(255, 255, 255, 0.04);
 }
+
+.form-group select:focus {
+  outline: 2px solid rgba(216, 196, 160, 0.22);
+  outline-offset: 2px;
+  border-color: rgba(210, 188, 145, 0.5);
+  background-color: #1a1712;
+}
+
 
 .primary-button {
   margin-top: 0.35rem;
@@ -205,28 +212,17 @@
 }
 
 .form-group select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background:
-    linear-gradient(45deg, transparent 50%, #cfc3aa 50%),
-    linear-gradient(135deg, #cfc3aa 50%, transparent 50%),
-    rgba(255, 255, 255, 0.025);
-  background-position:
-    calc(100% - 22px) calc(50% - 3px),
-    calc(100% - 16px) calc(50% - 3px),
-    0 0;
-  background-size:
-    6px 6px,
-    6px 6px,
-    100% 100%;
-  background-repeat: no-repeat;
-  padding-right: 3rem;
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  background-color: #1a1712;
+  color: #f3f1ea;
+  padding-right: 0.95rem;
 }
 
 .form-group select option {
-  background-color: #1a1712;
-  color: #f3f1ea;
+  background-color: #ffffff;
+  color: #1a1712;
 }
 
 .decision-meta {
@@ -494,42 +490,37 @@
   padding: 0.85rem 0.95rem;
   border-radius: 12px;
   border: 1px solid rgba(214, 202, 179, 0.12);
-  background: rgba(255, 255, 255, 0.025);
+  background-color: #1a1712;
   color: #f3f1ea;
   font: inherit;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background:
-    linear-gradient(45deg, transparent 50%, #cfc3aa 50%),
-    linear-gradient(135deg, #cfc3aa 50%, transparent 50%),
-    rgba(255, 255, 255, 0.025);
-  background-position:
-    calc(100% - 22px) calc(50% - 3px),
-    calc(100% - 16px) calc(50% - 3px),
-    0 0;
-  background-size:
-    6px 6px,
-    6px 6px,
-    100% 100%;
-  background-repeat: no-repeat;
-  padding-right: 3rem;
+}
+
+.toolbar select {
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
 }
 
 .toolbar select option {
-  background-color: #1a1712;
-  color: #f3f1ea;
+  background-color: #ffffff;
+  color: #1a1712;
 }
 
 .toolbar input::placeholder {
   color: #918872;
 }
 
-.toolbar input:focus,
-.toolbar select:focus {
+.toolbar input:focus {
   outline: none;
   border-color: rgba(210, 188, 145, 0.5);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.toolbar select:focus {
+  outline: 2px solid rgba(216, 196, 160, 0.22);
+  outline-offset: 2px;
+  border-color: rgba(210, 188, 145, 0.5);
+  background-color: #1a1712;
 }
 
 @media (max-width: 700px) {
