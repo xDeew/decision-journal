@@ -1,40 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import './App.css'
-
-type ConfidenceLevel = 'low' | 'medium' | 'high'
-
-type Decision = {
-  id: string
-  title: string
-  category: string
-  context: string
-  actualOutcome: string
-  expectedOutcome: string
-  confidence: ConfidenceLevel
-  createdAt: string
-  status: 'open' | 'reviewed'
-  reflection: string
-
-}
-
-type DecisionFormData = {
-  title: string
-  category: string
-  context: string
-  expectedOutcome: string
-  confidence: '' | ConfidenceLevel
-}
-
-const initialFormData: DecisionFormData = {
-  title: '',
-  category: '',
-  context: '',
-  expectedOutcome: '',
-  confidence: '',
-}
-
-const DECISIONS_STORAGE_KEY = 'decision-journal-entries'
+import {
+  initialFormData,
+  type ConfidenceLevel,
+  type Decision,
+  type DecisionFormData,
+} from './types/decision'
+import { loadDecisions, saveDecisions } from './utils/storage'
 
 function App() {
   const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
@@ -49,30 +22,11 @@ function App() {
   const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
 
   useEffect(() => {
-    const storedDecisions = localStorage.getItem(DECISIONS_STORAGE_KEY)
-
-    if (!storedDecisions) {
-      return
-    }
-
-    try {
-      const parsedDecisions = JSON.parse(storedDecisions)
-
-      const normalizedDecisions: Decision[] = parsedDecisions.map((decision: Partial<Decision>) => ({
-        ...decision,
-        actualOutcome: decision.actualOutcome ?? '',
-        reflection: decision.reflection ?? '',
-        status: decision.status ?? 'open',
-      })) as Decision[]
-
-      setDecisions(normalizedDecisions)
-    } catch (error) {
-      console.error('Failed to parse decisions from localStorage:', error)
-    }
+    setDecisions(loadDecisions())
   }, [])
 
   useEffect(() => {
-    localStorage.setItem(DECISIONS_STORAGE_KEY, JSON.stringify(decisions))
+    saveDecisions(decisions)
   }, [decisions])
 
   const handleChange = (
