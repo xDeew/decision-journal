@@ -8,6 +8,7 @@ import {
   type DecisionFormData,
 } from './types/decision'
 import { loadDecisions, saveDecisions } from './utils/storage'
+import DecisionCard from './components/DecisionCard'
 
 function App() {
   const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
@@ -389,120 +390,24 @@ function App() {
           ) : (
             <div className="decision-list">
               {filteredDecisions.map((decision) => (
-                <article key={decision.id} className="decision-card">
-                  <div className="decision-card-top">
-                    <div className="decision-meta">
-                      <span className={`confidence-badge ${decision.confidence}`}>
-                        {decision.confidence}
-                      </span>
-                      <span className={`status-badge ${decision.status}`}>
-                        {decision.status}
-                      </span>
-                      <span className="decision-date">{decision.createdAt}</span>
-                    </div>
-
-                    <div className="card-actions">
-                      <button
-                        type="button"
-                        className="edit-button"
-                        onClick={() => handleEditDecision(decision.id)}
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        className="delete-button"
-                        onClick={() => handleDeleteDecision(decision.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-
-                  <h3>{decision.title}</h3>
-                  <p className="decision-category">{decision.category}</p>
-                  <div className="decision-actions">
-                    {decision.status === 'open' ? (
-                      <button
-                        type="button"
-                        className="review-button"
-                        onClick={() => handleStartReview(decision.id)}
-                      >
-                        Add review
-                      </button>
-                    ) : (
-                      <span className="reviewed-label">Reviewed</span>
-                    )}
-                  </div>
-
-                  <div className="decision-section">
-                    <h4>Context</h4>
-                    <p>{decision.context}</p>
-                  </div>
-
-                  <div className="decision-section">
-                    <h4>Expected outcome</h4>
-                    <p>{decision.expectedOutcome}</p>
-                  </div>
-
-                  {reviewingDecisionId === decision.id && (
-                    <div className="review-box">
-                      <label htmlFor={`review-${decision.id}`}>Actual outcome</label>
-                      <textarea
-                        id={`review-${decision.id}`}
-                        rows={4}
-                        value={reviewText}
-                        onChange={(event) => setReviewText(event.target.value)}
-                        placeholder="What actually happened after making this decision?"
-                      />
-
-                      <label htmlFor={`reflection-${decision.id}`}>Reflection</label>
-                      <textarea
-                        id={`reflection-${decision.id}`}
-                        rows={4}
-                        value={reflectionText}
-                        onChange={(event) => setReflectionText(event.target.value)}
-                        placeholder="What did you learn from this decision? Would you do anything differently next time?"
-                      />
-                      <div className="review-box-actions">
-                        <button
-                          type="button"
-                          className="save-review-button"
-                          onClick={() => handleSaveReview(decision.id)}
-                        >
-                          Save review
-                        </button>
-
-                        <button
-                          type="button"
-                          className="cancel-review-button"
-                          onClick={() => {
-                            setReviewingDecisionId(null)
-                            setReviewText('')
-                            setReflectionText('')
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {decision.actualOutcome && (
-                    <div className="decision-section">
-                      <h4>Actual outcome</h4>
-                      <p>{decision.actualOutcome}</p>
-                    </div>
-                  )}
-
-                  {decision.reflection && (
-                    <div className="decision-section">
-                      <h4>Reflection</h4>
-                      <p>{decision.reflection}</p>
-                    </div>
-                  )}
-                </article>
+                <DecisionCard
+                  key={decision.id}
+                  decision={decision}
+                  reviewingDecisionId={reviewingDecisionId}
+                  reviewText={reviewText}
+                  reflectionText={reflectionText}
+                  onEdit={handleEditDecision}
+                  onDelete={handleDeleteDecision}
+                  onStartReview={handleStartReview}
+                  onSaveReview={handleSaveReview}
+                  onReviewTextChange={setReviewText}
+                  onReflectionTextChange={setReflectionText}
+                  onCancelReview={() => {
+                    setReviewingDecisionId(null)
+                    setReviewText('')
+                    setReflectionText('')
+                  }}
+                />
               ))}
             </div>
           )}
