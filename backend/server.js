@@ -135,6 +135,214 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
     })
 })
 
+app.get('/api/decisions', authMiddleware, async (req, res) => {
+    try {
+        const pool = await sql.connect(config)
+
+        const result = await pool
+            .request()
+            .input('userId', sql.Int, req.user.userId)
+            .query(`
+        SELECT
+          Id,
+          UserId,
+          Title,
+          Category,
+          Context,
+          ExpectedOutcome,
+          ActualOutcome,
+          Reflection,
+          Confidence,
+          Status,
+          CreatedAt
+        FROM Decisions
+        WHERE UserId = @userId
+        ORDER BY CreatedAt DESC
+      `)
+
+        res.json(result.recordset)
+    } catch (error) {
+        console.error('Get decisions error:', error)
+        res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
+app.post('/api/decisions', authMiddleware, async (req, res) => {
+    try {
+        const {
+            title,
+            category,
+            context,
+            expectedOutcome,
+            confidence,
+        } = req.body
+
+        if (!title || !category || !context || !expectedOutcome || !confidence) {
+            return res.status(400).json({
+                message: 'Title, category, context, expectedOutcome and confidence are required',
+            })
+        }
+
+        const pool = await sql.connect(config)
+
+        const result = await pool
+            .request()
+            .input('userId', sql.Int, req.user.userId)
+            .input('title', sql.NVarChar, title)
+            .input('category', sql.NVarChar, category)
+            .input('context', sql.NVarChar(sql.MAX), context)
+            .input('expectedOutcome', sql.NVarChar(sql.MAX), expectedOutcome)
+            .input('confidence', sql.NVarChar, confidence)
+            .query(`
+        INSERT INTO Decisions (
+          UserId,
+          Title,
+          Category,
+          Context,
+          ExpectedOutcome,
+          Confidence
+        )
+        OUTPUT
+          INSERTED.Id,
+          INSERTED.UserId,
+          INSERTED.Title,
+          INSERTED.Category,
+          INSERTED.Context,
+          INSERTED.ExpectedOutcome,
+          INSERTED.ActualOutcome,
+          INSERTED.Reflection,
+          INSERTED.Confidence,
+          INSERTED.Status,
+          INSERTED.CreatedAt
+        VALUES (
+          @userId,
+          @title,
+          @category,
+          @context,
+          @expectedOutcome,
+          @confidence
+        )
+      `)
+
+        res.status(201).json({
+            message: 'Decision created successfully',
+            decision: result.recordset[0],
+        })
+    } catch (error) {
+        console.error('Create decision error:', error)
+        res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
+app.put('/api/decisions/:id', authMiddleware, async (req, res) => {
+    try {
+        const decisionId = Number(req.params.id)
+        const {
+            title,
+            category,
+            context,
+            expectedOutcome,
+            actualOutcome,
+            reflection,
+            confidence,
+            status,
+        } = req.body
+
+        if (!decisionId || Number.isNaN(decisionId)) {
+            return res.status(400).json({ message: 'Invalid decision id' })
+        }
+
+        if (!title || !category || !context || !expectedOutcome || !confidence || !status) {
+            return res.status(400).json({
+                message: 'Title, category, context, expectedOutcome, confidence and status are required',
+            })
+        }
+
+        const pool = await sql.connect(config)
+
+        const result = await pool
+            .request()
+            .input('id', sql.Int, decisionId)
+            .input('userId', sql.Int, req.user.userId)
+            .input('title', sql.NVarChar, title)
+            .input('category', sql.NVarChar, category)
+            .input('context', sql.NVarChar(sql.MAX), context)
+            .input('expectedOutcome', sql.NVarChar(sql.MAX), expectedOutcome)
+            .input('actualOutcome', sql.NVarChar(sql.MAX), actualOutcome ?? null)
+            .input('reflection', sql.NVarChar(sql.MAX), reflection ?? null)
+            .input('confidence', sql.NVarChar, confidence)
+            .input('status', sql.NVarChar, status)
+            .query(`
+        UPDATE Decisions
+        SET
+          Title = @title,
+          Category = @category,
+          Context = @context,
+          ExpectedOutcome = @expectedOutcome,
+          ActualOutcome = @actualOutcome,
+          Reflection = @reflection,
+          Confidence = @confidence,
+          Status = @status
+        OUTPUT
+          INSERTED.Id,
+          INSERTED.UserId,
+          INSERTED.Title,
+          INSERTED.Category,
+          INSERTED.Context,
+          INSERTED.ExpectedOutcome,
+          INSERTED.ActualOutcome,
+          INSERTED.Reflection,
+          INSERTED.Confidence,
+          INSERTED.Status,
+          INSERTED.CreatedAt
+        WHERE Id = @id AND UserId = @userId
+      `)
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Decision not found' })
+        }
+
+        res.json({
+            message: 'Decision updated successfully',
+            decision: result.recordset[0],
+        })
+    } catch (error) {
+        console.error('Update decision error:', error)
+        res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
+app.delete('/api/decisions/:id', authMiddleware, async (req, res) => {
+    try {
+        const decisionId = Number(req.params.id)
+
+        if (!decisionId || Number.isNaN(decisionId)) {
+            return res.status(400).json({ message: 'Invalid decision id' })
+        }
+
+        const pool = await sql.connect(config)
+
+        const result = await pool
+            .request()
+            .input('id', sql.Int, decisionId)
+            .input('userId', sql.Int, req.user.userId)
+            .query(`
+        DELETE FROM Decisions
+        OUTPUT DELETED.Id
+        WHERE Id = @id AND UserId = @userId
+      `)
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Decision not found' })
+        }
+
+        res.json({ message: 'Decision deleted successfully' })
+    } catch (error) {
+        console.error('Delete decision error:', error)
+        res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`)
 })
