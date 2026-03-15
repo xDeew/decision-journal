@@ -239,17 +239,23 @@
   flex-wrap: wrap;
 }
 
+.decision-date {
+  font-size: 0.9rem;
+  color: #c1b59f;
+}
+
 .decision-card h3 {
   margin: 0 0 0.35rem;
-  font-size: 1.25rem;
-  line-height: 1.2;
+  font-size: 1.5rem;
+  line-height: 1.15;
   color: #f3f1ea;
+  letter-spacing: -0.02em;
 }
 
 .decision-category {
   margin: 0 0 1rem;
-  color: #c6b79c;
-  font-size: 0.95rem;
+  color: #c9bc9f;
+  font-size: 0.98rem;
 }
 
 .delete-button {
@@ -273,11 +279,11 @@
 }
 
 .decision-card {
-  padding: 1.15rem 1.15rem 1.2rem;
-  border-radius: 18px;
+  padding: 1.2rem;
+  border-radius: 20px;
   border: 1px solid rgba(214, 202, 179, 0.12);
-  background: rgba(255, 248, 235, 0.04);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 248, 235, 0.045);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
 }
 
 .decision-card-top {
@@ -286,14 +292,14 @@
   align-items: flex-start;
   gap: 1rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.9rem;
+  padding-bottom: 0.85rem;
   border-bottom: 1px solid rgba(214, 202, 179, 0.08);
 }
 
 .decision-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 @media (max-width: 640px) {
@@ -304,6 +310,10 @@
 
   .card-actions {
     width: 100%;
+  }
+
+  .decision-card h3 {
+    font-size: 1.3rem;
   }
 }
 
@@ -318,12 +328,22 @@
   line-height: 1.5;
 }
 
+
+.confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+
 .status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.35rem 0.7rem;
+  padding: 0.4rem 0.72rem;
   border-radius: 999px;
-  text-transform: capitalize;
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -365,13 +385,13 @@
 }
 
 .review-button {
-  border: 1px solid rgba(175, 216, 176, 0.18);
+  border: 1px solid rgba(175, 216, 176, 0.16);
   background: rgba(175, 216, 176, 0.06);
-  color: #afd8b0;
-  padding: 0.5rem 0.8rem;
-  border-radius: 10px;
+  color: #b8dfba;
+  padding: 0.55rem 0.9rem;
+  border-radius: 12px;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.18s ease, border-color 0.18s ease;
@@ -379,17 +399,15 @@
 
 .review-button:hover {
   background: rgba(175, 216, 176, 0.1);
-  border-color: rgba(175, 216, 176, 0.28);
+  border-color: rgba(175, 216, 176, 0.26);
 }
 
 .reviewed-label {
   display: inline-flex;
   align-items: center;
-  padding: 0.45rem 0.75rem;
+  padding: 0.4rem 0.72rem;
   border-radius: 999px;
-  background: rgba(175, 216, 176, 0.1);
-  color: #afd8b0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
@@ -601,12 +619,13 @@
 }
 
 .edit-button,
+.delete-button,
 .secondary-button {
   border: 1px solid rgba(214, 202, 179, 0.14);
   background: transparent;
   color: #d9c8ac;
-  padding: 0.45rem 0.7rem;
-  border-radius: 10px;
+  padding: 0.5rem 0.78rem;
+  border-radius: 12px;
   font: inherit;
   font-size: 0.85rem;
   font-weight: 600;
@@ -615,6 +634,7 @@
 }
 
 .edit-button:hover,
+.delete-button:hover,
 .secondary-button:hover {
   background: rgba(216, 196, 160, 0.08);
   border-color: rgba(216, 196, 160, 0.28);

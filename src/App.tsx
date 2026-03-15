@@ -5,11 +5,7 @@ import DecisionToolbar from './components/DecisionToolbar'
 import DecisionStats from './components/DecisionStats'
 import { useDecisionJournal } from './hooks/useDecisionJournal'
 import {
-  initialFormData,
   suggestedCategories,
-  type ConfidenceLevel,
-  type Decision,
-  type DecisionFormData,
 } from './types/decision'
 
 function App() {
