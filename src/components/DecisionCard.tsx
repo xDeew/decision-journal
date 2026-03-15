@@ -37,7 +37,9 @@ function DecisionCard({
           <span className={`status-badge ${decision.status}`}>
             {decision.status}
           </span>
-          <span className="decision-date">{decision.createdAt}</span>
+          <span className="decision-date">
+            {new Date(decision.createdAt).toLocaleDateString()}
+          </span>
         </div>
 
         <div className="card-actions">

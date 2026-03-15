@@ -1,22 +1,8 @@
-import { useEffect, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
 import './App.css'
-import {
-  initialFormData,
-  type ConfidenceLevel,
-  type Decision,
-  type DecisionFormData,
-} from './types/decision'
-import { loadDecisions, saveDecisions } from './utils/storage'
 import DecisionCard from './components/DecisionCard'
 import DecisionForm from './components/DecisionForm'
 import DecisionToolbar from './components/DecisionToolbar'
 import DecisionStats from './components/DecisionStats'
-import {
-  getAvailableCategories,
-  getDecisionStats,
-  getFilteredDecisions,
-} from './utils/decisionHelpers'
 import { useDecisionJournal } from './hooks/useDecisionJournal'
 
 function App() {
@@ -50,6 +36,8 @@ function App() {
     handleEditDecision,
     cancelEditing,
     cancelReview,
+    sortOrder,
+    setSortOrder,
   } = useDecisionJournal()
 
   return (
@@ -100,6 +88,8 @@ function App() {
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             availableCategories={availableCategories}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
           />
 
           {filteredDecisions.length === 0 ? (

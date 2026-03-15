@@ -8,6 +8,8 @@ type DecisionToolbarProps = {
   selectedCategory: string
   setSelectedCategory: Dispatch<SetStateAction<string>>
   availableCategories: string[]
+  sortOrder: 'newest' | 'oldest'
+  setSortOrder: Dispatch<SetStateAction<'newest' | 'oldest'>>
 }
 
 function DecisionToolbar({
@@ -18,6 +20,8 @@ function DecisionToolbar({
   selectedCategory,
   setSelectedCategory,
   availableCategories,
+  sortOrder,
+  setSortOrder,
 }: DecisionToolbarProps) {
   return (
     <>
@@ -72,6 +76,19 @@ function DecisionToolbar({
                 {category}
               </option>
             ))}
+          </select>
+        </div>
+        <div className="toolbar-sort">
+          <label htmlFor="sort-order">Sort</label>
+          <select
+            id="sort-order"
+            value={sortOrder}
+            onChange={(event) =>
+              setSortOrder(event.target.value as 'newest' | 'oldest')
+            }
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
           </select>
         </div>
       </div>
