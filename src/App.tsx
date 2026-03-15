@@ -4,6 +4,13 @@ import DecisionForm from './components/DecisionForm'
 import DecisionToolbar from './components/DecisionToolbar'
 import DecisionStats from './components/DecisionStats'
 import { useDecisionJournal } from './hooks/useDecisionJournal'
+import {
+  initialFormData,
+  suggestedCategories,
+  type ConfidenceLevel,
+  type Decision,
+  type DecisionFormData,
+} from './types/decision'
 
 function App() {
 
@@ -72,6 +79,7 @@ function App() {
           onChange={handleChange}
           onSubmit={handleSubmit}
           onCancelEditing={cancelEditing}
+          categoryOptions={[...new Set([...suggestedCategories, ...availableCategories])]}
         />
 
         <div className="panel list-panel">

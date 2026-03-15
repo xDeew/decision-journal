@@ -1,10 +1,12 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import type { DecisionFormData } from '../types/decision'
+import { useEffect, useState } from 'react'
 
 type DecisionFormProps = {
   formData: DecisionFormData
   errorMessage: string
   editingDecisionId: string | null
+  categoryOptions: string[]
   onChange: (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => void
@@ -12,14 +14,28 @@ type DecisionFormProps = {
   onCancelEditing: () => void
 }
 
+
 function DecisionForm({
   formData,
   errorMessage,
   editingDecisionId,
+  categoryOptions,
   onChange,
   onSubmit,
   onCancelEditing,
+
 }: DecisionFormProps) {
+  const customCategoryOption = 'custom-category'
+
+  const [isCustomCategorySelected, setIsCustomCategorySelected] = useState(false)
+
+  useEffect(() => {
+    if (formData.category === '') {
+      return
+    }
+
+    setIsCustomCategorySelected(!categoryOptions.includes(formData.category))
+  }, [formData.category, categoryOptions])
   return (
     <div className="panel form-panel">
       <div className="panel-heading">
@@ -43,15 +59,62 @@ function DecisionForm({
         </div>
 
         <div className="form-group">
-          <label htmlFor="category">Category</label>
-          <input
-            id="category"
-            name="category"
-            type="text"
-            placeholder="Career, finance, health..."
-            value={formData.category}
-            onChange={onChange}
-          />
+          <label htmlFor="category-select">Category</label>
+
+          <select
+            id="category-select"
+            value={
+              isCustomCategorySelected
+                ? customCategoryOption
+                : formData.category === ''
+                  ? ''
+                  : formData.category
+            }
+            onChange={(event) => {
+              const selectedValue = event.target.value
+
+              if (selectedValue === customCategoryOption) {
+                setIsCustomCategorySelected(true)
+                onChange({
+                  target: {
+                    name: 'category',
+                    value: '',
+                  },
+                } as ChangeEvent<HTMLInputElement>)
+              } else {
+                setIsCustomCategorySelected(false)
+                onChange({
+                  target: {
+                    name: 'category',
+                    value: selectedValue,
+                  },
+                } as ChangeEvent<HTMLInputElement>)
+              }
+            }}
+          >
+            <option value="" disabled hidden>
+              Select category
+            </option>
+
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+
+            <option value={customCategoryOption}>Custom category</option>
+          </select>
+
+          {isCustomCategorySelected && (
+            <input
+              id="category"
+              name="category"
+              type="text"
+              placeholder="Write your custom category..."
+              value={formData.category}
+              onChange={onChange}
+            />
+          )}
         </div>
 
         <div className="form-group">

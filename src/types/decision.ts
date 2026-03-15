@@ -11,6 +11,7 @@ export type Decision = {
   createdAt: string
   status: 'open' | 'reviewed'
   reflection: string
+  // suggestedCategories: string[]
 }
 
 export type DecisionFormData = {
@@ -28,3 +29,16 @@ export const initialFormData: DecisionFormData = {
   expectedOutcome: '',
   confidence: '',
 }
+
+export const suggestedCategories = [
+  'Career',
+  'Finance',
+  'Health',
+  'Relationships',
+  'Personal',
+  'Education',
+  'Lifestyle',
+  'Productivity',
+  'Family',
+  'Travel',
+]
