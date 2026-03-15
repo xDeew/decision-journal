@@ -1,30 +1,53 @@
 # Decision Journal
 
-A web app for recording important decisions, capturing the reasoning behind them, and reviewing outcomes over time.
+A full-stack web application for recording important decisions, capturing the reasoning behind them, and reviewing outcomes over time.
 
 ## Goal
 
-The purpose of this project is to build a practical tool that helps users think more clearly about their decisions, reflect on results, and improve judgment through real feedback.
+The purpose of this project is to provide a practical tool that helps users think more clearly about their decisions, reflect on results, and improve judgment through real feedback.
 
 ## Status
 
-In progress.
+MVP completed.
 
-## Planned features
+## Features
 
-- Create and store decisions
-- Add context and reasoning
-- Track expected outcomes
-- Review actual results later
-- Filter and browse past decisions
+- User authentication with sign up and login
+- Protected routes with JWT authentication
+- Create decisions with title, category, context, expected outcome, and confidence level
+- Edit existing decisions
+- Review decisions later by adding actual outcomes and reflections
+- Delete decisions
+- Filter and search past decisions
+- Persistent data storage with SQL Server
 
-## Tech stack
+## Tech Stack
 
+### Frontend
 - React
 - TypeScript
 - Vite
 - CSS
-- localStorage
+
+### Backend
+- Node.js
+- Express
+- JWT
+- bcrypt
+
+### Database
+- SQL Server
+
+## Architecture
+
+- Frontend built with React and TypeScript
+- REST API built with Express
+- Authentication handled with JWT
+- Data stored in SQL Server
+
+## Notes
+
+This project was built as a portfolio piece to demonstrate full-stack development skills, including frontend development, backend API design, authentication, CRUD operations, and SQL database integration.
 
 ## Author
 
