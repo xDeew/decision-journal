@@ -17,160 +17,40 @@ import {
   getDecisionStats,
   getFilteredDecisions,
 } from './utils/decisionHelpers'
+import { useDecisionJournal } from './hooks/useDecisionJournal'
 
 function App() {
-  const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
-  const [decisions, setDecisions] = useState<Decision[]>([])
-  const [errorMessage, setErrorMessage] = useState('')
-  const [reviewingDecisionId, setReviewingDecisionId] = useState<string | null>(null)
-  const [reviewText, setReviewText] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'reviewed'>('all')
-  const [reflectionText, setReflectionText] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
 
-  useEffect(() => {
-    setDecisions(loadDecisions())
-  }, [])
-
-  useEffect(() => {
-    saveDecisions(decisions)
-  }, [decisions])
-
-  const handleChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = event.target
-
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    if (
-      !formData.title.trim() ||
-      !formData.category.trim() ||
-      !formData.context.trim() ||
-      !formData.expectedOutcome.trim() ||
-      !formData.confidence
-    ) {
-      setErrorMessage('Please complete all fields before saving the decision.')
-      return
-    }
-
-    setErrorMessage('')
-    const confidence: ConfidenceLevel = formData.confidence
-    if (editingDecisionId) {
-      setDecisions((currentDecisions) =>
-        currentDecisions.map((decision) =>
-          decision.id === editingDecisionId
-            ? {
-              ...decision,
-              title: formData.title.trim(),
-              category: formData.category.trim(),
-              context: formData.context.trim(),
-              expectedOutcome: formData.expectedOutcome.trim(),
-              confidence,
-            }
-            : decision
-        )
-      )
-
-      setEditingDecisionId(null)
-    } else {
-      const newDecision: Decision = {
-        id: crypto.randomUUID(),
-        title: formData.title.trim(),
-        category: formData.category.trim(),
-        context: formData.context.trim(),
-        actualOutcome: '',
-        expectedOutcome: formData.expectedOutcome.trim(),
-        confidence: formData.confidence,
-        createdAt: new Date().toLocaleDateString(),
-        status: 'open',
-        reflection: '',
-      }
-
-      setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
-    }
-
-    setFormData(initialFormData)
-    setErrorMessage('')
-  }
-
-  const handleDeleteDecision = (decisionId: string) => {
-    setDecisions((currentDecisions) =>
-      currentDecisions.filter((decision) => decision.id !== decisionId)
-    )
-  }
-  const handleStartReview = (decisionId: string) => {
-    const decisionToReview = decisions.find((decision) => decision.id === decisionId)
-
-    setReviewingDecisionId(decisionId)
-    setReviewText(decisionToReview?.actualOutcome ?? '')
-    setReflectionText(decisionToReview?.reflection ?? '')
-  }
-
-  const handleSaveReview = (decisionId: string) => {
-    if (!reviewText.trim()) {
-      return
-    }
-
-    setDecisions((currentDecisions) =>
-      currentDecisions.map((decision) =>
-        decision.id === decisionId
-          ? {
-            ...decision,
-            actualOutcome: reviewText.trim(),
-            reflection: reflectionText.trim(),
-            status: 'reviewed',
-          }
-          : decision
-      )
-    )
-
-    setReviewingDecisionId(null)
-    setReviewText('')
-    setReflectionText('')
-  }
-
-  const handleEditDecision = (decisionId: string) => {
-    const decisionToEdit = decisions.find((decision) => decision.id === decisionId)
-
-    if (!decisionToEdit) {
-      return
-    }
-
-    setFormData({
-      title: decisionToEdit.title,
-      category: decisionToEdit.category,
-      context: decisionToEdit.context,
-      expectedOutcome: decisionToEdit.expectedOutcome,
-      confidence: decisionToEdit.confidence,
-    })
-
-    setEditingDecisionId(decisionId)
-    setErrorMessage('')
-  }
-
-  const filteredDecisions = getFilteredDecisions({
-    decisions,
+  const {
+    formData,
+    errorMessage,
+    editingDecisionId,
+    reviewingDecisionId,
+    reviewText,
+    reflectionText,
     statusFilter,
-    selectedCategory,
     searchTerm,
-  })
-
-  const { totalDecisions, openDecisions, reviewedDecisions } =
-    getDecisionStats(decisions)
-
-  const availableCategories = getAvailableCategories(decisions)
-
-  const hasDecisions = decisions.length > 0
+    selectedCategory,
+    filteredDecisions,
+    totalDecisions,
+    openDecisions,
+    reviewedDecisions,
+    availableCategories,
+    hasDecisions,
+    setStatusFilter,
+    setSearchTerm,
+    setSelectedCategory,
+    setReviewText,
+    setReflectionText,
+    handleChange,
+    handleSubmit,
+    handleDeleteDecision,
+    handleStartReview,
+    handleSaveReview,
+    handleEditDecision,
+    cancelEditing,
+    cancelReview,
+  } = useDecisionJournal()
 
   return (
     <main className="app-shell">
@@ -203,11 +83,7 @@ function App() {
           editingDecisionId={editingDecisionId}
           onChange={handleChange}
           onSubmit={handleSubmit}
-          onCancelEditing={() => {
-            setEditingDecisionId(null)
-            setFormData(initialFormData)
-            setErrorMessage('')
-          }}
+          onCancelEditing={cancelEditing}
         />
 
         <div className="panel list-panel">
@@ -216,60 +92,15 @@ function App() {
             <h2>Decision log</h2>
           </div>
 
-          <div className="filter-tabs">
-            <button
-              type="button"
-              className={statusFilter === 'all' ? 'filter-tab active' : 'filter-tab'}
-              onClick={() => setStatusFilter('all')}
-            >
-              All
-            </button>
-
-            <button
-              type="button"
-              className={statusFilter === 'open' ? 'filter-tab active' : 'filter-tab'}
-              onClick={() => setStatusFilter('open')}
-            >
-              Open
-            </button>
-
-            <button
-              type="button"
-              className={statusFilter === 'reviewed' ? 'filter-tab active' : 'filter-tab'}
-              onClick={() => setStatusFilter('reviewed')}
-            >
-              Reviewed
-            </button>
-          </div>
-
-          <div className="toolbar">
-            <div className="toolbar-search">
-              <label htmlFor="search-decisions">Search</label>
-              <input
-                id="search-decisions"
-                type="text"
-                placeholder="Search by title, category or context..."
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-              />
-            </div>
-
-            <div className="toolbar-category">
-              <label htmlFor="category-filter">Category</label>
-              <select
-                id="category-filter"
-                value={selectedCategory}
-                onChange={(event) => setSelectedCategory(event.target.value)}
-              >
-                <option value="all">All categories</option>
-                {availableCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <DecisionToolbar
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            availableCategories={availableCategories}
+          />
 
           {filteredDecisions.length === 0 ? (
             <div className="empty-state">
@@ -297,11 +128,7 @@ function App() {
                   onSaveReview={handleSaveReview}
                   onReviewTextChange={setReviewText}
                   onReflectionTextChange={setReflectionText}
-                  onCancelReview={() => {
-                    setReviewingDecisionId(null)
-                    setReviewText('')
-                    setReflectionText('')
-                  }}
+                  onCancelReview={cancelReview}
                 />
               ))}
             </div>
