@@ -1,15 +1,15 @@
+import { useEffect, useState } from 'react'
 import './App.css'
+import AuthForm from './components/AuthForm'
 import DecisionCard from './components/DecisionCard'
 import DecisionForm from './components/DecisionForm'
-import DecisionToolbar from './components/DecisionToolbar'
 import DecisionStats from './components/DecisionStats'
+import DecisionToolbar from './components/DecisionToolbar'
 import { useDecisionJournal } from './hooks/useDecisionJournal'
-import {
-  suggestedCategories,
-} from './types/decision'
+import type { AuthUser } from './types/auth'
+import { suggestedCategories } from './types/decision'
 
 function App() {
-
   const {
     formData,
     errorMessage,
@@ -41,7 +41,52 @@ function App() {
     cancelReview,
     sortOrder,
     setSortOrder,
-  } = useDecisionJournal()
+    isLoading,
+  } = useDecisionJournal(currentUser)
+
+  const [token, setToken] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token')
+    const savedUser = localStorage.getItem('user')
+
+    if (savedToken && savedUser) {
+      setToken(savedToken)
+      setCurrentUser(JSON.parse(savedUser))
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setToken(null)
+    setCurrentUser(null)
+  }
+
+  if (!token || !currentUser) {
+    return (
+      <main className="app-shell">
+        <header className="topbar">
+          <div>
+            <p className="app-kicker">Decision Journal</p>
+            <h1 className="app-title">Think clearly. Record the choice.</h1>
+          </div>
+
+          <div className="topbar-badge">V1</div>
+        </header>
+
+        <section className="workspace">
+          <AuthForm
+            onLoginSuccess={(newToken, user) => {
+              setToken(newToken)
+              setCurrentUser(user)
+            }}
+          />
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="app-shell">
@@ -51,7 +96,17 @@ function App() {
           <h1 className="app-title">Think clearly. Record the choice.</h1>
         </div>
 
-        <div className="topbar-badge">V1</div>
+        <div className="topbar-actions">
+          <div className="topbar-badge">{currentUser.username}</div>
+
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       <section className="intro-card">
@@ -61,6 +116,7 @@ function App() {
           intentional and learning more concrete.
         </p>
       </section>
+
       <DecisionStats
         totalDecisions={totalDecisions}
         openDecisions={openDecisions}
@@ -96,7 +152,14 @@ function App() {
             setSortOrder={setSortOrder}
           />
 
-          {filteredDecisions.length === 0 ? (
+          {isLoading ? (
+            <div className="empty-state">
+              <div>
+                <h3>Loading decisions...</h3>
+                <p>Please wait while your journal entries are loaded.</p>
+              </div>
+            </div>
+          ) : filteredDecisions.length === 0 ? (
             <div className="empty-state">
               <div>
                 <h3>{hasDecisions ? 'No matching decisions' : 'No decisions yet'}</h3>

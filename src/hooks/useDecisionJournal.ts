@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react'
-import type {
-    ConfidenceLevel,
-    Decision,
-    DecisionFormData,
-} from '../types/decision'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import type { Decision, DecisionFormData } from '../types/decision'
 import { initialFormData } from '../types/decision'
-import { loadDecisions, saveDecisions } from '../utils/storage'
 import {
     getAvailableCategories,
     getDecisionStats,
     getFilteredDecisions,
 } from '../utils/decisionHelpers'
+import {
+    createDecision,
+    deleteDecision,
+    getDecisions,
+    updateDecision,
+} from '../api/decisions'
+import { mapDecisionApiToDecision } from '../utils/decisionMappers'
+import type { AuthUser } from '../types/auth'
 
-export function useDecisionJournal() {
+export function useDecisionJournal(currentUser: AuthUser | null) {
     const [formData, setFormData] = useState<DecisionFormData>(initialFormData)
     const [decisions, setDecisions] = useState<Decision[]>([])
     const [errorMessage, setErrorMessage] = useState('')
@@ -24,17 +27,33 @@ export function useDecisionJournal() {
     const [selectedCategory, setSelectedCategory] = useState('all')
     const [editingDecisionId, setEditingDecisionId] = useState<string | null>(null)
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        setDecisions(loadDecisions())
-    }, [])
+        async function fetchDecisions() {
+            if (!currentUser) {
+                setDecisions([])
+                setIsLoading(false)
+                return
+            }
 
-    useEffect(() => {
-        saveDecisions(decisions)
-    }, [decisions])
+            try {
+                setIsLoading(true)
+                const decisionsFromApi = await getDecisions()
+                setDecisions(decisionsFromApi.map(mapDecisionApiToDecision))
+            } catch (error) {
+                console.error('Load decisions error:', error)
+                setDecisions([])
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchDecisions()
+    }, [currentUser])
 
     const handleChange = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
         const { name, value } = event.target
 
@@ -44,7 +63,7 @@ export function useDecisionJournal() {
         }))
     }
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
         if (
@@ -54,55 +73,75 @@ export function useDecisionJournal() {
             !formData.expectedOutcome.trim() ||
             !formData.confidence
         ) {
-            setErrorMessage('Please complete all fields before saving the decision.')
+            setErrorMessage('Please complete all required fields.')
             return
         }
 
         setErrorMessage('')
-        const confidence: ConfidenceLevel = formData.confidence
 
-        if (editingDecisionId) {
-            setDecisions((currentDecisions) =>
-                currentDecisions.map((decision) =>
-                    decision.id === editingDecisionId
-                        ? {
-                            ...decision,
-                            title: formData.title.trim(),
-                            category: formData.category.trim(),
-                            context: formData.context.trim(),
-                            expectedOutcome: formData.expectedOutcome.trim(),
-                            confidence,
-                        }
-                        : decision
+        try {
+            if (editingDecisionId) {
+                const existingDecision = decisions.find(
+                    (decision) => decision.id === editingDecisionId
                 )
-            )
 
-            setEditingDecisionId(null)
-        } else {
-            const newDecision: Decision = {
-                id: crypto.randomUUID(),
-                title: formData.title.trim(),
-                category: formData.category.trim(),
-                context: formData.context.trim(),
-                actualOutcome: '',
-                expectedOutcome: formData.expectedOutcome.trim(),
-                confidence,
-                createdAt: new Date().toISOString(),
-                status: 'open',
-                reflection: '',
+                if (!existingDecision) {
+                    setErrorMessage('Decision not found.')
+                    return
+                }
+
+                const response = await updateDecision(Number(editingDecisionId), {
+                    title: formData.title.trim(),
+                    category: formData.category.trim(),
+                    context: formData.context.trim(),
+                    expectedOutcome: formData.expectedOutcome.trim(),
+                    actualOutcome: existingDecision.actualOutcome || null,
+                    reflection: existingDecision.reflection || null,
+                    confidence: formData.confidence,
+                    status: existingDecision.status,
+                })
+
+                const updatedDecision = mapDecisionApiToDecision(response.decision)
+
+                setDecisions((currentDecisions) =>
+                    currentDecisions.map((decision) =>
+                        decision.id === editingDecisionId ? updatedDecision : decision
+                    )
+                )
+
+                setEditingDecisionId(null)
+            } else {
+                const response = await createDecision({
+                    title: formData.title.trim(),
+                    category: formData.category.trim(),
+                    context: formData.context.trim(),
+                    expectedOutcome: formData.expectedOutcome.trim(),
+                    confidence: formData.confidence,
+                })
+
+                const newDecision = mapDecisionApiToDecision(response.decision)
+
+                setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
             }
 
-            setDecisions((currentDecisions) => [newDecision, ...currentDecisions])
+            setFormData(initialFormData)
+        } catch (error) {
+            console.error('Submit decision error:', error)
+            setErrorMessage(
+                error instanceof Error ? error.message : 'Something went wrong'
+            )
         }
-
-        setFormData(initialFormData)
-        setErrorMessage('')
     }
 
-    const handleDeleteDecision = (decisionId: string) => {
-        setDecisions((currentDecisions) =>
-            currentDecisions.filter((decision) => decision.id !== decisionId)
-        )
+    const handleDeleteDecision = async (decisionId: string) => {
+        try {
+            await deleteDecision(Number(decisionId))
+            setDecisions((currentDecisions) =>
+                currentDecisions.filter((decision) => decision.id !== decisionId)
+            )
+        } catch (error) {
+            console.error('Delete decision error:', error)
+        }
     }
 
     const handleStartReview = (decisionId: string) => {
@@ -113,27 +152,39 @@ export function useDecisionJournal() {
         setReflectionText(decisionToReview?.reflection ?? '')
     }
 
-    const handleSaveReview = (decisionId: string) => {
-        if (!reviewText.trim()) {
+    const handleSaveReview = async (decisionId: string) => {
+        const decisionToReview = decisions.find((decision) => decision.id === decisionId)
+
+        if (!decisionToReview || !reviewText.trim()) {
             return
         }
 
-        setDecisions((currentDecisions) =>
-            currentDecisions.map((decision) =>
-                decision.id === decisionId
-                    ? {
-                        ...decision,
-                        actualOutcome: reviewText.trim(),
-                        reflection: reflectionText.trim(),
-                        status: 'reviewed',
-                    }
-                    : decision
-            )
-        )
+        try {
+            const response = await updateDecision(Number(decisionId), {
+                title: decisionToReview.title,
+                category: decisionToReview.category,
+                context: decisionToReview.context,
+                expectedOutcome: decisionToReview.expectedOutcome,
+                actualOutcome: reviewText.trim(),
+                reflection: reflectionText.trim() || null,
+                confidence: decisionToReview.confidence,
+                status: 'reviewed',
+            })
 
-        setReviewingDecisionId(null)
-        setReviewText('')
-        setReflectionText('')
+            const updatedDecision = mapDecisionApiToDecision(response.decision)
+
+            setDecisions((currentDecisions) =>
+                currentDecisions.map((decision) =>
+                    decision.id === decisionId ? updatedDecision : decision
+                )
+            )
+
+            setReviewingDecisionId(null)
+            setReviewText('')
+            setReflectionText('')
+        } catch (error) {
+            console.error('Save review error:', error)
+        }
     }
 
     const handleEditDecision = (decisionId: string) => {
@@ -201,6 +252,7 @@ export function useDecisionJournal() {
         reviewedDecisions,
         availableCategories,
         hasDecisions,
+        isLoading,
         setStatusFilter,
         setSearchTerm,
         setSelectedCategory,

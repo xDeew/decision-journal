@@ -11,7 +11,6 @@ export type Decision = {
   createdAt: string
   status: 'open' | 'reviewed'
   reflection: string
-  // suggestedCategories: string[]
 }
 
 export type DecisionFormData = {
