@@ -643,3 +643,48 @@
 .secondary-button {
   margin-top: 0.7rem;
 }
+
+.auth-panel {
+  max-width: 560px;
+}
+
+.auth-subtitle {
+  margin: 0;
+  color: rgba(239, 232, 221, 0.72);
+  line-height: 1.5;
+}
+
+.auth-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.auth-mode-button {
+  border: 1px solid rgba(239, 232, 221, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(239, 232, 221, 0.72);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.auth-mode-button:hover:not(:disabled) {
+  border-color: rgba(239, 232, 221, 0.24);
+  color: rgba(239, 232, 221, 0.92);
+}
+
+.auth-mode-button.active {
+  background: rgba(233, 220, 195, 0.12);
+  border-color: rgba(233, 220, 195, 0.28);
+  color: #efe8dd;
+}
+
+.auth-mode-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
