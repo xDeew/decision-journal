@@ -26,9 +26,6 @@ function AuthForm({ onLoginSuccess }: AuthFormProps) {
 
       const response = await login({ email, password })
 
-      localStorage.setItem('token', response.token)
-      localStorage.setItem('user', JSON.stringify(response.user))
-
       onLoginSuccess(response.token, response.user)
 
       setUsername('')

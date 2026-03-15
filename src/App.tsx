@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import './App.css'
 import AuthForm from './components/AuthForm'
 import DecisionCard from './components/DecisionCard'
@@ -6,10 +5,14 @@ import DecisionForm from './components/DecisionForm'
 import DecisionStats from './components/DecisionStats'
 import DecisionToolbar from './components/DecisionToolbar'
 import { useDecisionJournal } from './hooks/useDecisionJournal'
-import type { AuthUser } from './types/auth'
 import { suggestedCategories } from './types/decision'
+import { useAuth } from './hooks/useAuth'
 
 function App() {
+
+
+  const { token, currentUser, handleLoginSuccess, handleLogout } = useAuth()
+
   const {
     formData,
     errorMessage,
@@ -44,25 +47,7 @@ function App() {
     isLoading,
   } = useDecisionJournal(currentUser)
 
-  const [token, setToken] = useState<string | null>(null)
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null)
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token')
-    const savedUser = localStorage.getItem('user')
-
-    if (savedToken && savedUser) {
-      setToken(savedToken)
-      setCurrentUser(JSON.parse(savedUser))
-    }
-  }, [])
-
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setToken(null)
-    setCurrentUser(null)
-  }
 
   if (!token || !currentUser) {
     return (
@@ -77,12 +62,7 @@ function App() {
         </header>
 
         <section className="workspace">
-          <AuthForm
-            onLoginSuccess={(newToken, user) => {
-              setToken(newToken)
-              setCurrentUser(user)
-            }}
-          />
+          <AuthForm onLoginSuccess={handleLoginSuccess} />
         </section>
       </main>
     )

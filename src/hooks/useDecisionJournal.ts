@@ -141,12 +141,16 @@ export function useDecisionJournal(currentUser: AuthUser | null) {
             )
         } catch (error) {
             console.error('Delete decision error:', error)
+            setErrorMessage(
+                error instanceof Error ? error.message : 'Something went wrong while deleting the decision'
+            )
         }
     }
 
     const handleStartReview = (decisionId: string) => {
         const decisionToReview = decisions.find((decision) => decision.id === decisionId)
 
+        setErrorMessage('')
         setReviewingDecisionId(decisionId)
         setReviewText(decisionToReview?.actualOutcome ?? '')
         setReflectionText(decisionToReview?.reflection ?? '')
